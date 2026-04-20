@@ -12,6 +12,13 @@ from contextlib import contextmanager
 
 import paddle
 
+# Must call paddle.enable_compat(scope={"triton"}) BEFORE import triton.
+# In a pure-Paddle env this registers the Paddle triton driver so that
+# triton can discover it during initialization.  In a mixed torch+paddle
+# env this is also safe — both drivers are registered and the
+# swap_driver_guard / activate_paddle_driver mechanism handles switching.
+paddle.enable_compat(scope={"triton"})
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from registry import SHAPE_CONFIGS, OpConfig, generate_inputs, get_op, list_ops  # noqa: E402
 
