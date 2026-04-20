@@ -83,8 +83,8 @@ def _warmup_iters() -> int:
 
 
 def _do_bench_kw():
-    warmup_ms = int(os.environ.get('FLA_BENCH_WARMUP_MS', '25'))
-    rep_ms = int(os.environ.get('FLA_BENCH_REP_MS', '100'))
+    warmup_ms = int(os.environ.get('FLA_BENCH_WARMUP_MS', '100'))
+    rep_ms = int(os.environ.get('FLA_BENCH_REP_MS', '500'))
     return {'warmup': max(1, warmup_ms), 'rep': max(1, rep_ms)}
 
 
