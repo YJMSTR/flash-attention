@@ -43,9 +43,12 @@ assert FLASHMASK_BUILD in ('fa3', 'fa4', 'all'), (
 
 BUILD_FA3 = FLASHMASK_BUILD in ('fa3', 'all')
 BUILD_FA4 = FLASHMASK_BUILD in ('fa4', 'all')
+BUILD_FLA = os.environ.get('BUILD_FLA', '0') == '1'
 
 print(f"[flashmask] FLASHMASK_BUILD={FLASHMASK_BUILD}  "
-      f"BUILD_FA3={BUILD_FA3}  BUILD_FA4={BUILD_FA4}")
+      f"BUILD_FA3={BUILD_FA3}  BUILD_FA4={BUILD_FA4}  BUILD_FLA={BUILD_FLA}")
+if BUILD_FLA:
+    print("[flashmask] Note: FLA (Flash Linear Attention) in flashmask currently only supports GDN and KDA operators.")
 
 # ============================================================
 # Config
@@ -87,6 +90,11 @@ if not BUILD_FA4:
         'flash_mask.cute',
         'flash_mask.cute.*',
     ]
+if not BUILD_FLA:
+    exclude_packages += [
+        'flash_mask.linear_attn',
+        'flash_mask.linear_attn.*',
+    ]
 
 packages = find_packages(exclude=exclude_packages)
 
@@ -94,6 +102,8 @@ packages = find_packages(exclude=exclude_packages)
 # Dependencies
 # ============================================================
 install_requires = ['typing_extensions']
+if BUILD_FLA:
+    install_requires += ['triton>=3.5.1']
 if BUILD_FA4:
     install_requires += [
         'nvidia-cutlass==4.2.0.0',
