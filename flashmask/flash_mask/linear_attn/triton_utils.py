@@ -9,6 +9,26 @@ import paddle
 from functools import cache
 from importlib.metadata import PackageNotFoundError, distribution
 
+# Patch triton nvidia backend is_active() to not depend on torch.
+# triton 3.6.0 uses torch.cuda.is_available() which fails without torch
+# or with an incompatible torch build. Use cuInit() directly instead.
+import ctypes as _ctypes
+
+
+def _triton_cuda_is_active():
+    try:
+        return _ctypes.CDLL("libcuda.so.1").cuInit(0) == 0
+    except Exception:
+        return False
+
+
+try:
+    from triton.backends.nvidia import driver as _triton_nvidia_driver
+
+    _triton_nvidia_driver.CudaDriver.is_active = staticmethod(_triton_cuda_is_active)
+except Exception:
+    pass  # triton not installed or no nvidia backend, skip
+
 
 @cache
 def _is_package_installed(dist_name: str) -> bool:
@@ -19,12 +39,16 @@ def _is_package_installed(dist_name: str) -> bool:
         return False
 
 
-# Pre-create Paddle triton driver in mixed torch environment
+# Pre-create Paddle triton driver (works with or without torch)
 paddle_driver = None
-if _is_package_installed("torch"):
+try:
     with paddle.use_compat_guard(enable=True, silent=True):
-        from triton.runtime.driver import _create_driver
+        from triton.runtime.driver import _create_driver, driver as _triton_driver
+
         paddle_driver = _create_driver()
+        _triton_driver._default = paddle_driver  # cache to global driver singleton
+except Exception:
+    pass
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +193,7 @@ def enable_compat_on_triton_kernel(triton_kernel):
         def my_kernel(...):
             ...
     """
-    if not _is_package_installed("torch"):
+    if paddle_driver is None:
         return triton_kernel
 
     class WrappedTritonKernel:

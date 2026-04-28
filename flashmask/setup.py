@@ -43,7 +43,7 @@ assert FLASHMASK_BUILD in ('fa3', 'fa4', 'all'), (
 
 BUILD_FA3 = FLASHMASK_BUILD in ('fa3', 'all')
 BUILD_FA4 = FLASHMASK_BUILD in ('fa4', 'all')
-BUILD_FLA = os.environ.get('BUILD_FLA', '0') == '1'
+BUILD_FLA = FLASHMASK_BUILD in ('fla', 'all')
 
 print(f"[flashmask] FLASHMASK_BUILD={FLASHMASK_BUILD}  "
       f"BUILD_FA3={BUILD_FA3}  BUILD_FA4={BUILD_FA4}  BUILD_FLA={BUILD_FLA}")
