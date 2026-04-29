@@ -12,9 +12,12 @@ Triton-based GDN (Gated Delta Networks) and KDA (Kimi Delta Attention) operators
 ## Environment Setup
 
 ```bash
-# Set PYTHONPATH so linear_attn is importable as a top-level package
-export PYTHONPATH=/path/to/flash-attention/flashmask:$PYTHONPATH
+# Install the flash_mask package (includes linear_attn)
+cd /path/to/flash-attention/flashmask
+FLASHMASK_BUILD=fla pip install -e . --no-build-isolation
 ```
+
+`FLASHMASK_BUILD` supports `fa3`, `fa4`, `fla`, `all`, and combinations such as `fa3+fla` or `fa3, fla`. Use `fla` when you only need the linear-attention GDN/KDA operators.
 
 ## Running Tests
 
@@ -60,7 +63,7 @@ SKIP_TEST_CHUNK_VARLEN=1 pytest test_gated_delta.py test_kda.py -v
 
 ## Running Benchmarks
 
-The benchmark framework is located at `flashmask/benchmarks/paddle_ops/` and supports 4 operators:
+The benchmark framework has been moved to the `test_flashmask/` repository and supports 4 operators:
 
 | Operator | Description | Modes |
 |----------|-------------|-------|
@@ -70,27 +73,27 @@ The benchmark framework is located at `flashmask/benchmarks/paddle_ops/` and sup
 | `recurrent_kda` | KDA fused recurrent | fwd only |
 
 ```bash
-cd /path/to/flash-attention/flashmask
+cd /path/to/test_flashmask
 
 # List registered operators
-python -m benchmarks.paddle_ops.run --list
+python benchmark_linear_attention_run.py --list
 
 # Run all benchmarks
-python -m benchmarks.paddle_ops.run --op all
+python benchmark_linear_attention_run.py --op all
 
 # Run specific operators
-python -m benchmarks.paddle_ops.run --op chunk_gdn
-python -m benchmarks.paddle_ops.run --op chunk_kda recurrent_kda
+python benchmark_linear_attention_run.py --op chunk_gdn
+python benchmark_linear_attention_run.py --op chunk_kda recurrent_kda
 
 # Forward only
-python -m benchmarks.paddle_ops.run --op chunk_gdn --modes fwd
+python benchmark_linear_attention_run.py --op chunk_gdn --modes fwd
 
 # Custom shapes
-python -m benchmarks.paddle_ops.run --op chunk_gdn \
+python benchmark_linear_attention_run.py --op chunk_gdn \
   --custom-shapes '{"smoke":{"B":1,"T":64,"H":2,"D":32}}'
 
 # Save results as JSON
-python -m benchmarks.paddle_ops.run --op all --json results.json
+python benchmark_linear_attention_run.py --op all --json results.json
 ```
 
 ### Default Shape Configs
